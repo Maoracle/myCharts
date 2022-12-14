@@ -1,5 +1,8 @@
 import utils from './utils'
+import Cirque from './cirque'
 import myAnimation from './myAnimation'
+import { drawHistogram } from './histogram'
+import { drawAxis, drawPoint, drawBrokenLine, drawDashLine } from './broken'
 
 class MyCharts {
   constructor(defaultParam) {
@@ -42,22 +45,60 @@ class MyCharts {
     // 设置合适的画布宽度
     this.defaultParam.wid = this._canvas.width - 20
 
+    // 设置缩放比
+    this.defaultParam.maxPoint = utils.maxData(this.defaultParam.data) / 0.8
+
     this.init()
   }
 
   init() {
     switch (this.defaultParam.type) {
       case 'cirque':
-        console.log('绘制圆环')
+        let circleConfig = {
+          x: this.defaultParam.wd/2,
+          y: this.defaultParam.ht/2,
+          radius: 200,
+          startAngle: 0,
+          endAngle: 2*Math.PI,
+          arcWidth: 18,
+          target: 50
+        }
+        this.circleConfig = utils.extendsObj(this.defaultParam, circleConfig)
         myAnimation.call(this, {
-          percent: 100,
+          percent: this.circleConfig.target,
           render: (current) => {
-            console.log(current)
+            Cirque.call(this, current / 100)
           }
         })
         break
-      default:
-        console.log('无此功能的绘制')
+      case 'line':
+        myAnimation.call(this, {
+          percent: 200,
+          render: (current) => {
+            // 绘制坐标系
+            drawAxis.call(this)
+            // 绘制虚线
+            drawBrokenLine.call(this, current / 200)
+            // 绘制Y轴虚线
+            drawDashLine.call(this, current / 200)
+            // 绘制圆形
+            drawPoint.call(this, current / 200)
+          }
+        })
+        break
+      case 'histogram':
+        myAnimation.call(this, {
+          percent: 100,
+          render: (current) => {
+            // 绘制坐标系
+            drawAxis.call(this)
+            // 绘制直方图
+            drawHistogram.call(this, current / 100)
+          }
+        })
+        break
+        default:
+          console.log('无此功能的绘制')
     }
   }
 }
